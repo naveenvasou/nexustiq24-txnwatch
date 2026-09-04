@@ -1,0 +1,72 @@
+{
+  "customer_id": "CUST-19342",
+  "customer_name": "Elena Rostova",
+  "account_type": "Everyday Checking",
+  "kyc_tier": "Tier 1 - Standard",
+  "account_opened": "2023-11-05",
+  "transactions": [
+    {
+      "txn_id": "TXN-19342-001",
+      "date": "2026-08-25T14:10:00",
+      "type": "CREDIT",
+      "amount": 3200.00,
+      "description": "Direct Deposit - Global Health Systems",
+      "mcc": null,
+      "location": "Boston, MA, US"
+    },
+    {
+      "txn_id": "TXN-19342-002",
+      "date": "2026-08-26T19:22:00",
+      "type": "DEBIT",
+      "amount": 112.45,
+      "description": "Trader Joe's Groceries",
+      "mcc": "5411",
+      "location": "Boston, MA, US"
+    },
+    {
+      "txn_id": "TXN-19342-003",
+      "date": "2026-08-27T08:15:00",
+      "type": "DEBIT",
+      "amount": 5.75,
+      "description": "Starbucks Coffee",
+      "mcc": "5814",
+      "location": "Boston, MA, US"
+    },
+    {
+      "txn_id": "TXN-19342-004",
+      "date": "2026-08-28T11:30:00",
+      "type": "DEBIT",
+      "amount": 88.20,
+      "description": "Eversource Electric Utility",
+      "mcc": "4900",
+      "location": "Boston, MA, US"
+    },
+    {
+      "txn_id": "TXN-19342-005",
+      "date": "2026-08-30T16:40:00",
+      "type": "DEBIT",
+      "amount": 64.50,
+      "description": "Target Store",
+      "mcc": "5310",
+      "location": "Boston, MA, US"
+    },
+    {
+      "txn_id": "TXN-19342-006",
+      "date": "2026-09-02T09:00:00",
+      "type": "DEBIT",
+      "amount": 15.99,
+      "description": "Netflix Subscription",
+      "mcc": "4899",
+      "location": "Online"
+    },
+    {
+      "txn_id": "TXN-19342-007",
+      "date": "2026-09-03T13:10:00",
+      "type": "DEBIT",
+      "amount": 100.00,
+      "description": "ATM Cash Withdrawal - Main St Branch",
+      "mcc": "6011",
+      "location": "Boston, MA, US"
+    }
+  ]
+}

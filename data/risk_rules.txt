@@ -1,0 +1,17 @@
+BANK TRANSACTION MONITORING RISK POLICY & RULES
+Document Version: 2.4 (Internal Compliance & AML Operations)
+
+RULE-01: Rapid High-Value Outflows
+Any account exhibiting cumulative outbound wire, ACH, or debit transfers exceeding $10,000 within any rolling 24-hour window, particularly when transferred to unverified recipients, offshore accounts, or newly added beneficiaries within 48 hours of creation.
+
+RULE-02: Structuring / Smurfing Pattern
+A sequence of multiple cash deposits, incoming transfers, or cashier check encashments each valued between $9,000 and $9,999 within a 7-day calendar period, indicating potential deliberate evasion of the mandatory $10,000 Currency Transaction Report (CTR) filing threshold.
+
+RULE-03: Sudden Geographic Velocity Anomaly
+Consecutive point-of-sale (POS) card swipes or ATM cash withdrawals registered in geographically incompatible locations within a timeframe that is physically impossible to travel (e.g., transactions in two distinct international jurisdictions within 2 hours).
+
+RULE-04: High-Risk Merchant Category Activity
+Uncharacteristic or sudden transaction spikes totaling over $3,000 directed towards high-risk Merchant Category Codes (MCCs), including cryptocurrency exchange gateways (MCC 6051), virtual gaming/casinos (MCC 7995), or unvetted international money remitters (MCC 4829), especially when inconsistent with prior customer profile history.
+
+RULE-05: Rapid Account Drainage Post-Inflow
+An account where a large credit inflow (exceeding $5,000) is followed by the disbursement of more than 80% of the total account balance within 24 to 48 hours, leaving a near-zero closing balance, a common indicator of mule account layering or pass-through conduct.
