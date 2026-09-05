@@ -45,7 +45,7 @@ def run_investigation(customer_data: Dict[str, Any]) -> Dict[str, Any]:
     if not api_key:
         return {
             "success": False,
-            "error": "GEMINI_API_KEY environment variable is not set. Please set GEMINI_API_KEY to run live investigations."
+            "error": "GEMINI_API_KEY environment variable is not set. Please export GEMINI_API_KEY to run live investigations."
         }
 
     try:
@@ -108,8 +108,8 @@ HTML_UI = """<!DOCTYPE html>
       --bg: #0f172a;
       --panel: #1e293b;
       --panel-border: #334155;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --danger: #ef4444;
@@ -208,7 +208,7 @@ HTML_UI = """<!DOCTYPE html>
     .customer-meta div strong { color: #f1f5f9; }
     .table-container {
       overflow-x: auto;
-      max-height: 250px;
+      max-height: 240px;
       overflow-y: auto;
       border: 1px solid var(--panel-border);
       border-radius: 6px;
@@ -277,10 +277,19 @@ HTML_UI = """<!DOCTYPE html>
       text-align: center;
       gap: 0.75rem;
     }
+    .alert-box {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      display: none;
+    }
     .spinner {
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(255,255,255,0.2);
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
       border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
@@ -309,10 +318,7 @@ HTML_UI = """<!DOCTYPE html>
 
       <div>
         <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Select Customer Profile:</label>
-        <select id="customerSelect">
-          <option value="CUST-84920">CUST-84920 - Marcus Vance (Flagged Outflows & Crypto MCC)</option>
-          <option value="CUST-19342">CUST-19342 - Elena Rostova (Routine Household Transactions)</option>
-        </select>
+        <select id="customerSelect"></select>
       </div>
 
       <div class="customer-meta" id="customerMeta">
@@ -346,7 +352,7 @@ HTML_UI = """<!DOCTYPE html>
       </button>
 
       <div>
-        <span style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Bank Risk Rules Policy (Direct Context Injection):</span>
+        <span style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem; display: block;">Bank Risk Rules Policy (Injected in Prompt Context):</span>
         <div class="rules-box" id="rulesBox">Loading bank risk rules...</div>
       </div>
     </section>
@@ -357,6 +363,8 @@ HTML_UI = """<!DOCTYPE html>
         <span id="reportStatus" style="font-size: 0.75rem; color: var(--text-muted);">Awaiting assessment</span>
       </div>
 
+      <div id="errorAlert" class="alert-box"></div>
+
       <div id="reportContainer" class="report-output">
         <div class="empty-state" id="emptyState">
           <p>No investigation report generated yet.</p>
@@ -365,6 +373,113 @@ HTML_UI = """<!DOCTYPE html>
       </div>
     </section>
   </main>
+
+  <script>
+    let customersData = {};
+
+    async function init() {
+      try {
+        const [rulesRes, custRes] = await Promise.all([
+          fetch('/api/rules'),
+          fetch('/api/customers')
+        ]);
+        const rulesJson = await rulesRes.json();
+        const custJson = await custRes.json();
+
+        document.getElementById('rulesBox').textContent = rulesJson.rules || 'No rules found';
+        customersData = custJson.customers || {};
+
+        const select = document.getElementById('customerSelect');
+        select.innerHTML = '';
+        for (const [id, cust] of Object.entries(customersData)) {
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = `${cust.customer_id} - ${cust.customer_name} (${cust.account_type})`;
+          select.appendChild(opt);
+        }
+
+        if (Object.keys(customersData).length > 0) {
+          selectCustomer(Object.keys(customersData)[0]);
+        }
+      } catch (err) {
+        console.error('Initialization error:', err);
+      }
+    }
+
+    function selectCustomer(id) {
+      const cust = customersData[id];
+      if (!cust) return;
+
+      document.getElementById('metaId').textContent = cust.customer_id;
+      document.getElementById('metaName').textContent = cust.customer_name;
+      document.getElementById('metaType').textContent = cust.account_type;
+      document.getElementById('metaKyc').textContent = cust.kyc_tier;
+
+      const tbody = document.querySelector('#txnTable tbody');
+      tbody.innerHTML = '';
+      (cust.transactions || []).forEach(txn => {
+        const tr = document.createElement('tr');
+        const formattedAmount = (txn.type === 'CREDIT' ? '+' : '-') + '$' + Number(txn.amount).toLocaleString(undefined, {minimumFractionDigits: 2});
+        tr.innerHTML = `
+          <td>${txn.date ? txn.date.replace('T', ' ') : ''}</td>
+          <td class="${txn.type === 'CREDIT' ? 'type-credit' : 'type-debit'}">${txn.type}</td>
+          <td>${formattedAmount}</td>
+          <td>${txn.description || ''}</td>
+          <td>${txn.mcc || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('customerSelect').addEventListener('change', (e) => {
+      selectCustomer(e.target.value);
+    });
+
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      const selectedId = document.getElementById('customerSelect').value;
+      const btn = document.getElementById('runBtn');
+      const btnText = document.getElementById('btnText');
+      const spinner = document.getElementById('btnSpinner');
+      const errorAlert = document.getElementById('errorAlert');
+      const reportContainer = document.getElementById('reportContainer');
+      const reportStatus = document.getElementById('reportStatus');
+
+      errorAlert.style.display = 'none';
+      btn.disabled = true;
+      btnText.textContent = 'Analyzing with Gemini...';
+      spinner.style.display = 'inline-block';
+      reportStatus.textContent = 'Running assessment...';
+
+      try {
+        const res = await fetch('/api/investigate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customer_id: selectedId })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Investigation failed');
+        }
+
+        reportContainer.innerHTML = '';
+        const reportContent = document.createElement('div');
+        reportContent.textContent = data.report;
+        reportContainer.appendChild(reportContent);
+        reportStatus.textContent = 'Assessment complete (gemini-2.5-flash-lite)';
+      } catch (err) {
+        errorAlert.textContent = err.message;
+        errorAlert.style.display = 'block';
+        reportStatus.textContent = 'Assessment failed';
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Run Risk Assessment';
+        spinner.style.display = 'none';
+      }
+    });
+
+    init();
+  </script>
 </body>
 </html>
 """
