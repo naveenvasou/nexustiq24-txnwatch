@@ -1,4 +1,4 @@
-Track: 6
+TRACK_ID=PS06
 
 # TxnWatch - Banking Transaction Risk Investigation
 
